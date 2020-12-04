@@ -2,26 +2,24 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 func main() {
-	input, err := getPasswords()
-	if err != nil {
-		panic(fmt.Errorf("failed to get input: %w", err))
-	}
-
-	validCounter := 0
-	for _, val := range input {
+	passwords := getPasswords()
+	validV1Counter, validV2Counter := 0, 0
+	for _, val := range passwords {
+		if val.isValidV1() {
+			validV1Counter++
+		}
 		if val.isValidV2() {
-			validCounter++
+			validV2Counter++
 		}
 	}
 
-	fmt.Printf("%d out of %d passwords are valid\n", validCounter, len(input))
+	fmt.Printf("V1: %d out of %d passwords are valid\n", validV1Counter, len(passwords))
+	fmt.Printf("V2: %d out of %d passwords are valid\n", validV2Counter, len(passwords))
 }
 
 type PasswordPolicy struct {
@@ -35,20 +33,20 @@ type Password struct {
 	password string
 }
 
-func newPassword(inputLine string) (*Password, error) {
+func newPassword(inputLine string) *Password {
 	pattern := regexp.MustCompile("^([0-9]+)-([0-9]+) ([a-z]): ([a-z]+)$")
 	matches := pattern.FindStringSubmatch(inputLine)
 	if len(matches) < 5 {
-		return nil, fmt.Errorf("failed to parse input line")
+		panic(fmt.Errorf("failed to parse input line [%s]", inputLine))
 	}
 
 	a, err := strconv.Atoi(matches[1])
 	if err != nil {
-		return nil, fmt.Errorf("invalid first value [%s]: %w", matches[1], err)
+		panic(fmt.Errorf("invalid first value [%s]: %w", matches[1], err))
 	}
 	b, err := strconv.Atoi(matches[2])
 	if err != nil {
-		return nil, fmt.Errorf("invalid second value [%s]: %w", matches[2], err)
+		panic(fmt.Errorf("invalid second value [%s]: %w", matches[2], err))
 	}
 
 	return &Password{
@@ -58,7 +56,7 @@ func newPassword(inputLine string) (*Password, error) {
 			letter: matches[3][0],
 		},
 		password: matches[4],
-	}, nil
+	}
 }
 
 func (p Password) isValidV1() bool {
@@ -71,7 +69,7 @@ func (p Password) isValidV1() bool {
 
 	result := count >= p.policy.a && count <= p.policy.b
 	if !result {
-		fmt.Printf("INVALID pass [%s] has %d letters [%s], can have %d-%d\n", p.password, count, string(p.policy.letter), p.policy.a, p.policy.b)
+		//fmt.Printf("INVALID pass [%s] has %d letters [%s], can have %d-%d\n", p.password, count, string(p.policy.letter), p.policy.a, p.policy.b)
 	}
 	return result
 }
@@ -86,32 +84,17 @@ func (p Password) isValidV2() bool {
 	}
 	result := count == 1
 	if !result {
-		fmt.Printf("INVALID pass [%s] has %d letters [%s] on positions %d,%d\n", p.password, count, string(p.policy.letter), p.policy.a, p.policy.b)
+		//fmt.Printf("INVALID pass [%s] has %d letters [%s] on positions %d,%d\n", p.password, count, string(p.policy.letter), p.policy.a, p.policy.b)
 	}
 	return result
 }
 
-func getPasswords() ([]*Password, error) {
-	lines, err := getInputLines()
-	if err != nil {
-		return nil, err
-	}
+func getPasswords() []*Password {
+	lines := ReadLines("inputs/day_02.txt")
 	result := make([]*Password, len(lines))
 	for i, line := range lines {
-		pp, err := newPassword(line)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create password policy from [%s]: %w", line, err)
-		}
-		result[i] = pp
+		result[i] = newPassword(line)
 	}
 
-	return result, nil
-}
-
-func getInputLines() ([]string, error) {
-	data, err := ioutil.ReadFile("inputs/day_02")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	return strings.Split(string(data), "\n"), nil
+	return result
 }

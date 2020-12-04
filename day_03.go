@@ -2,15 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"strings"
 )
 
 func main() {
-	forrest, err := NewForrest()
-	if err != nil {
-		panic(fmt.Errorf("failed to crete forrest: %w", err))
-	}
+	forrest := NewForrest()
 
 	increments := [][]int{
 		{1, 1},
@@ -21,16 +16,12 @@ func main() {
 	}
 	result := 1
 	for _, increment := range increments {
-		treeHits, err := forrest.traverse(increment[0], increment[1])
-		if err != nil {
-			panic(fmt.Errorf("error while traversing: %w", err))
-		}
-
+		treeHits := forrest.traverse(increment[0], increment[1])
 		fmt.Printf("Hitting %d trees on the way down with increments [%d, %d]\n", treeHits, increment[0], increment[1])
 		result *= treeHits
 	}
 
-	fmt.Printf("Final result: %d", result)
+	fmt.Printf("Final result: %d\n", result)
 }
 
 type Forrest struct {
@@ -39,38 +30,29 @@ type Forrest struct {
 	trees  []string
 }
 
-func NewForrest() (*Forrest, error) {
-	data, err := ioutil.ReadFile("inputs/day_03")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	lines := strings.Split(string(data), "\n")
+func NewForrest() *Forrest {
+	lines := ReadLines("inputs/day_03.txt")
 
 	return &Forrest{
 		width:  len(lines[0]),
 		height: len(lines),
 		trees:  lines,
-	}, nil
+	}
 }
 
-func (f Forrest) traverse(incrementX int, incrementY int) (int, error) {
+func (f Forrest) traverse(incrementX int, incrementY int) int {
 	x, y := 0, 0
 	stepCounter, treeCounter := 0, 0
 	for !f.traverseFinished(y) {
 		stepCounter++
 		//fmt.Printf("Step #%d [%d, %d] ", stepCounter, x, y)
 		x, y = f.getNextPosition(x, y, incrementX, incrementY)
-		isTree, err := f.isTree(x, y)
-		if err != nil {
-			return 0, err
-		}
-		//fmt.Printf("-> [%d, %d], tree found: %v\n", x, y, isTree)
-		if isTree {
+		if f.isTree(x, y) {
 			treeCounter++
 		}
 	}
 
-	return treeCounter, nil
+	return treeCounter
 }
 
 func (f Forrest) traverseFinished(y int) bool {
@@ -81,13 +63,13 @@ func (f Forrest) getNextPosition(currentX int, currentY int, incrementX int, inc
 	return (currentX + incrementX) % f.width, currentY + incrementY
 }
 
-func (f Forrest) isTree(x int, y int) (bool, error) {
+func (f Forrest) isTree(x int, y int) bool {
 	char := string(f.trees[y][x])
 	if char == "#" {
-		return true, nil
+		return true
 	}
 	if char == "." {
-		return false, nil
+		return false
 	}
-	return false, fmt.Errorf("unsupported character [%s] on position %d, %d", char, x, y)
+	panic(fmt.Errorf("unsupported character [%s] on position %d, %d", char, x, y))
 }

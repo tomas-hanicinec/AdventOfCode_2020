@@ -2,19 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"sort"
-	"strconv"
-	"strings"
 )
 
 const TargetValue = 2020
 
 func main() {
-	input, err := getInputIntegers()
-	if err != nil {
-		panic(fmt.Errorf("failed to get input: %w", err))
-	}
+	input := StringsToInts(ReadLines("inputs/day_01.txt"))
 	sort.Ints(input)
 
 	for _, a := range input {
@@ -35,21 +29,4 @@ func main() {
 	}
 
 	fmt.Println("No solution found")
-}
-
-func getInputIntegers() ([]int, error) {
-	data, err := ioutil.ReadFile("inputs/day_01")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	stringsArray := strings.Split(string(data), "\n")
-	result := make([]int, len(stringsArray))
-	for i, stringVal := range stringsArray {
-		intVal, err := strconv.Atoi(stringVal)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert item string %s to int: %w", stringVal, err)
-		}
-		result[i] = intVal
-	}
-	return result, nil
 }

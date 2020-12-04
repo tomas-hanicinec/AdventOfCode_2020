@@ -2,18 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	passports, err := readPassports()
-	if err != nil {
-		panic(fmt.Errorf("failed to crete passports: %w", err))
-	}
-
+	passports := readPassports()
 	validCounter := 0
 	for _, passport := range passports {
 		if passport.isValid() {
@@ -29,12 +24,8 @@ type Passport struct {
 	fields map[string]*PassportField
 }
 
-func readPassports() ([]*Passport, error) {
-	data, err := ioutil.ReadFile("inputs/day_04")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	lines := strings.Split(string(data), "\n")
+func readPassports() []*Passport {
+	lines := ReadLines("inputs/day_04.txt")
 
 	result := make([]*Passport, 0)
 	lastNewlineIndex := -1
@@ -43,33 +34,26 @@ func readPassports() ([]*Passport, error) {
 		if line == "" {
 			// newline, process the previous passport
 			passportCounter++
-			passport, err := newPassport(passportCounter, lines[lastNewlineIndex+1:i])
-			if err != nil {
-				return nil, fmt.Errorf("failed to create passport %d: %w", passportCounter, err)
-			}
-			result = append(result, passport)
+			result = append(result, newPassport(passportCounter, lines[lastNewlineIndex+1:i]))
 			lastNewlineIndex = i
 		}
 	}
 
-	return result, nil
+	return result
 }
 
-func newPassport(number int, lines []string) (*Passport, error) {
+func newPassport(number int, lines []string) *Passport {
 	// Get passport skeleton
 	passport := getEmptyPassport(number)
 	// Fill fields
 	for _, line := range lines {
 		for _, fieldChunk := range strings.Split(line, " ") {
 			field := strings.Split(fieldChunk, ":")
-			err := passport.setFieldValue(strings.TrimSpace(field[0]), strings.TrimSpace(field[1]))
-			if err != nil {
-				return nil, fmt.Errorf("failed to set field [%s]: %w", field[0], err)
-			}
+			passport.setFieldValue(strings.TrimSpace(field[0]), strings.TrimSpace(field[1]))
 		}
 	}
 
-	return passport, nil
+	return passport
 }
 
 func getEmptyPassport(number int) *Passport {
@@ -88,13 +72,12 @@ func getEmptyPassport(number int) *Passport {
 	}
 }
 
-func (p *Passport) setFieldValue(fieldCode string, value string) error {
+func (p *Passport) setFieldValue(fieldCode string, value string) {
 	if _, exists := p.fields[fieldCode]; !exists {
-		return fmt.Errorf("unknown field [%s]", fieldCode)
+		panic(fmt.Errorf("unknown field [%s]", fieldCode))
 	}
 
 	p.fields[fieldCode].value = value
-	return nil
 }
 
 func (p *Passport) isValid() bool {
