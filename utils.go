@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -27,4 +28,31 @@ func StringsToInts(strings []string) []int {
 	}
 
 	return result
+}
+
+func StringsToLongints(strings []string) []int64 {
+	result := make([]int64, len(strings))
+	for i, stringVal := range strings {
+		intVal, err := strconv.ParseInt(stringVal, 10, 64)
+		if err != nil {
+			panic(fmt.Errorf("failed to convert item string %s to int64: %w", stringVal, err))
+		}
+		result[i] = intVal
+	}
+
+	return result
+}
+
+func GetMinMax(values []int64) (int64, int64) {
+	if len(values) < 1 {
+		panic(fmt.Errorf("cannot get Min, Max from empty array"))
+	}
+	minVal := int64(math.MaxInt64)
+	maxVal := int64(math.MinInt64)
+	for _, val := range values {
+		minVal = int64(math.Min(float64(minVal), float64(val)))
+		maxVal = int64(math.Max(float64(maxVal), float64(val)))
+	}
+
+	return maxVal, minVal
 }
