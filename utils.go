@@ -43,6 +43,15 @@ func StringsToLongints(strings []string) []int64 {
 	return result
 }
 
+func StringsToBytes(strings []string) [][]byte {
+	result := make([][]byte, len(strings))
+	for i, stringVal := range strings {
+		result[i] = []byte(stringVal)
+	}
+
+	return result
+}
+
 func GetMinMax(values []int64) (int64, int64) {
 	if len(values) < 1 {
 		panic(fmt.Errorf("cannot get Min, Max from empty array"))
