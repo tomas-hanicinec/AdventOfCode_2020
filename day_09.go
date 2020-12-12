@@ -9,9 +9,11 @@ const preambleSize = 25
 func main() {
 	xmasCode := NewXmasCode()
 
+	// Part I.
 	weaknessSumIndex, weaknessSum := xmasCode.findWeaknessSum(preambleSize)
 	fmt.Printf("Weakness sum found on index [%d]: %d\n", weaknessSumIndex, weaknessSum)
 
+	// Part II.
 	i, j, weakness, found := xmasCode.findWeakness(weaknessSum)
 	if !found {
 		panic(fmt.Errorf("no weakness found"))
@@ -27,7 +29,7 @@ func NewXmasCode() XmasCode {
 
 func (xc XmasCode) findWeaknessSum(preambleSize int) (int, int64) {
 	for i := preambleSize; i < len(xc); i++ {
-		_, _, found := findSum(xc[i], xc[i-preambleSize:i])
+		_, _, found := xc.findSum(xc[i], xc[i-preambleSize:i])
 		if !found {
 			return i, xc[i]
 		}
@@ -60,7 +62,7 @@ func (xc XmasCode) findWeakness(weaknessSum int64) (int, int, int64, bool) {
 	panic(fmt.Errorf("no contiguous set for XmasCode weakness found"))
 }
 
-func findSum(sum int64, values []int64) (int64, int64, bool) {
+func (xc XmasCode) findSum(sum int64, values []int64) (int64, int64, bool) {
 	// O(n) complexity (2 passes)
 	numberMap := make(map[int64]bool, len(values))
 	remainders := make([]int64, len(values))

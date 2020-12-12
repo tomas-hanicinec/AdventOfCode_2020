@@ -65,3 +65,7 @@ func GetMinMax(values []int64) (int64, int64) {
 
 	return maxVal, minVal
 }
+
+func AbsInt(val int) int {
+	return int(math.Abs(float64(val)))
+}

@@ -9,7 +9,7 @@ func main() {
 
 	increments := [][]int{
 		{1, 1},
-		{3, 1},
+		{3, 1}, // Part I.
 		{5, 1},
 		{7, 1},
 		{1, 2},
@@ -21,6 +21,7 @@ func main() {
 		result *= treeHits
 	}
 
+	// Part II.
 	fmt.Printf("Final result: %d\n", result)
 }
 

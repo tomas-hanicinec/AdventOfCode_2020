@@ -18,8 +18,8 @@ func main() {
 		}
 	}
 
-	fmt.Printf("V1: %d out of %d passwords are valid\n", validV1Counter, len(passwords))
-	fmt.Printf("V2: %d out of %d passwords are valid\n", validV2Counter, len(passwords))
+	fmt.Printf("V1: %d out of %d passwords are valid\n", validV1Counter, len(passwords)) // Part I.
+	fmt.Printf("V2: %d out of %d passwords are valid\n", validV2Counter, len(passwords)) // Part II.
 }
 
 type PasswordPolicy struct {
