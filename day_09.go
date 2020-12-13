@@ -18,7 +18,7 @@ func main() {
 	if !found {
 		panic(fmt.Errorf("no weakness found"))
 	}
-	fmt.Printf("Weakness found btween indexes [%d, %d], final number: %d\n", i, j, weakness)
+	fmt.Printf("Weakness found between indexes [%d, %d], final number: %d\n", i, j, weakness)
 }
 
 type XmasCode []int64

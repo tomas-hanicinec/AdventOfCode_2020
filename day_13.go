@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	input := ReadLines("inputs/day_13.txt")
 	arrivalTime, err := strconv.ParseInt(input[0], 10, 64)
 	if err != nil {
@@ -18,7 +17,7 @@ func main() {
 
 	// Part I.
 	busPeriod, waitTime := schedule.getBestWaitTime(arrivalTime)
-	fmt.Printf("Best bus number is %d, will have to wait %d minutes, result %d\n", busPeriod, waitTime, busPeriod*waitTime)
+	fmt.Printf("Best bus number is %d, will have to wait %d minutes, result: %d\n", busPeriod, waitTime, busPeriod*waitTime)
 
 	// Part II.
 	normalizedSchedule := schedule.getNormalized()

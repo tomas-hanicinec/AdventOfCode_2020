@@ -9,19 +9,23 @@ import (
 
 func main() {
 	passports := readPassports()
-	validCounter := 0
+	validCounterV1, validCounterV2 := 0, 0
 	for _, passport := range passports {
-		if passport.isValid() {
-			validCounter++
+		if passport.isValid(ValidateV1) {
+			validCounterV1++
+		}
+		if passport.isValid(ValidateV2) {
+			validCounterV2++
 		}
 	}
 
-	fmt.Printf("Total valid passports: %d\n", validCounter)
+	fmt.Printf("V1 total valid passports: %d\n", validCounterV1) // Part I.
+	fmt.Printf("V2 total valid passports: %d\n", validCounterV2) // Part II.
 }
 
 type Passport struct {
 	number int
-	fields map[string]*PassportField
+	fields map[string]string
 }
 
 func readPassports() []*Passport {
@@ -45,11 +49,11 @@ func readPassports() []*Passport {
 func newPassport(number int, lines []string) *Passport {
 	// Get passport skeleton
 	passport := getEmptyPassport(number)
-	// Fill fields
+	// Fill fields from input
 	for _, line := range lines {
 		for _, fieldChunk := range strings.Split(line, " ") {
 			field := strings.Split(fieldChunk, ":")
-			passport.setFieldValue(strings.TrimSpace(field[0]), strings.TrimSpace(field[1]))
+			passport.fields[strings.TrimSpace(field[0])] = strings.TrimSpace(field[1])
 		}
 	}
 
@@ -57,33 +61,29 @@ func newPassport(number int, lines []string) *Passport {
 }
 
 func getEmptyPassport(number int) *Passport {
-	fieldValidators := getValidators()
-	fields := make(map[string]*PassportField)
-	for code, fieldValidator := range fieldValidators {
-		fields[code] = &PassportField{
-			code:      code,
-			validator: fieldValidator,
-			value:     "",
-		}
-	}
 	return &Passport{
 		number: number,
-		fields: fields,
+		fields: map[string]string{
+			"byr": "",
+			"iyr": "",
+			"eyr": "",
+			"hgt": "",
+			"hcl": "",
+			"ecl": "",
+			"pid": "",
+			"cid": "",
+		},
 	}
 }
 
-func (p *Passport) setFieldValue(fieldCode string, value string) {
-	if _, exists := p.fields[fieldCode]; !exists {
-		panic(fmt.Errorf("unknown field [%s]", fieldCode))
-	}
-
-	p.fields[fieldCode].value = value
+func (p *Passport) setField(code string, value string) {
+	p.fields[code] = value
 }
 
-func (p *Passport) isValid() bool {
-	for _, field := range p.fields {
-		if err := field.validate(); err != nil {
-			fmt.Printf("Passport #%d not valid. Field [%s] validation error: %s\n", p.number, field.code, err)
+func (p *Passport) isValid(validator Validator) bool {
+	for code, value := range p.fields {
+		if err := validator(code, value); err != nil {
+			//fmt.Printf("Passport #%d not valid. Field [%s] validation error: %s\n", p.number, code, err)
 			return false
 		}
 	}
@@ -91,82 +91,72 @@ func (p *Passport) isValid() bool {
 	return true
 }
 
-type PassportField struct {
-	code      string
-	value     string
-	validator Validator
+type Validator func(string, string) error
+
+func ValidateV1(fieldCode string, fieldValue string) error {
+	if fieldCode != "cid" {
+		return mandatoryValidator(fieldValue)
+	}
+	return nil
 }
 
-func (pf PassportField) validate() error {
-	return pf.validator(pf.value)
-}
+func ValidateV2(fieldCode string, fieldValue string) error {
+	switch fieldCode {
 
-type Validator func(val string) error
+	case "byr":
+		// (Birth Year)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return numericRangeValidator(fieldValue, 1920, 2002)
 
-func getValidators() map[string]Validator {
-	return map[string]Validator{
-		"byr": func(val string) error {
-			// (Birth Year)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return numericRangeValidator(val, 1920, 2002)
-		},
-		"iyr": func(val string) error {
-			// (Issue Year)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return numericRangeValidator(val, 2010, 2020)
-		},
-		"eyr": func(val string) error {
-			// (Expiration Year)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return numericRangeValidator(val, 2020, 2030)
-		},
-		"hgt": func(val string) error {
-			// (Height)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			pattern := regexp.MustCompile("^([0-9]+)(cm|in)$")
-			matches := pattern.FindStringSubmatch(val)
-			if len(matches) != 3 {
-				return fmt.Errorf("height [%s] in invalid format", val)
-			}
-			if matches[2] == "cm" {
-				return numericRangeValidator(matches[1], 150, 193)
-			} else {
-				return numericRangeValidator(matches[1], 59, 76)
-			}
-		},
-		"hcl": func(val string) error {
-			// (Hair Color)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return regexpValidator(val, "^#[0-9a-f]{6}$")
-		},
-		"ecl": func(val string) error {
-			// (Eye Color)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return regexpValidator(val, "^amb|blu|brn|gry|grn|hzl|oth$")
-		},
-		"pid": func(val string) error {
-			// (Passport ID)
-			if err := mandatoryValidator(val); err != nil {
-				return err
-			}
-			return regexpValidator(val, "^[0-9]{9}$")
-		},
-		"cid": func(val string) error {
-			// (Country ID)
-			return nil // not mandatory
-		},
+	case "iyr":
+		// (Issue Year)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return numericRangeValidator(fieldValue, 2010, 2020)
+	case "eyr":
+		// (Expiration Year)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return numericRangeValidator(fieldValue, 2020, 2030)
+	case "hgt":
+		// (Height)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		pattern := regexp.MustCompile("^([0-9]+)(cm|in)$")
+		matches := pattern.FindStringSubmatch(fieldValue)
+		if len(matches) != 3 {
+			return fmt.Errorf("height [%s] in invalid format", fieldValue)
+		}
+		if matches[2] == "cm" {
+			return numericRangeValidator(matches[1], 150, 193)
+		} else {
+			return numericRangeValidator(matches[1], 59, 76)
+		}
+	case "hcl":
+		// (Hair Color)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return regexpValidator(fieldValue, "^#[0-9a-f]{6}$")
+	case "ecl":
+		// (Eye Color)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return regexpValidator(fieldValue, "^amb|blu|brn|gry|grn|hzl|oth$")
+	case "pid":
+		// (Passport ID)
+		if err := mandatoryValidator(fieldValue); err != nil {
+			return err
+		}
+		return regexpValidator(fieldValue, "^[0-9]{9}$")
+	default:
+		return nil // (Country ID - "cid") is not mandatory, unsupported fields are not important
 	}
 }
 
