@@ -63,9 +63,30 @@ func GetMinMax(values []int64) (int64, int64) {
 		maxVal = int64(math.Max(float64(maxVal), float64(val)))
 	}
 
-	return maxVal, minVal
+	return minVal, maxVal
 }
 
 func AbsInt(val int) int {
 	return int(math.Abs(float64(val)))
+}
+
+// greatest common divisor (GCD) via Euclidean algorithm
+func GCD(a, b int64) int64 {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func LCM(a, b int64, integers ...int64) int64 {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+
+	return result
 }
