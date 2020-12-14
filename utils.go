@@ -90,3 +90,15 @@ func LCM(a, b int64, integers ...int64) int64 {
 
 	return result
 }
+
+func getBitFromValue(value int64, bitNumber int) bool {
+	return (value&(1<<bitNumber))>>bitNumber == 1
+}
+
+func setBitToValue(value int64, bitNumber int, bitValue bool) int64 {
+	if bitValue {
+		return value | (1 << bitNumber)
+	} else {
+		return value & ^(1 << bitNumber)
+	}
+}
