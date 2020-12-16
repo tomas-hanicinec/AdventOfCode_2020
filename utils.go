@@ -102,3 +102,7 @@ func setBitToValue(value int64, bitNumber int, bitValue bool) int64 {
 		return value & ^(1 << bitNumber)
 	}
 }
+
+func isInInterval(min, max, index int) bool {
+	return min <= index && index <= max
+}
