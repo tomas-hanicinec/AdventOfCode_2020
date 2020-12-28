@@ -73,23 +73,6 @@ func (g *CupGame) playRound() {
 	//get destination cup
 	destinationCup := g.getDestinationCup()
 
-	/*
-		fmt.Printf("\n-- move %d --\n", g.roundNumber)
-		fmt.Printf("cups: (%d) ", g.currentCup.value)
-		for cup := g.currentCup.next; cup.value != g.currentCup.value; cup = cup.next {
-			fmt.Printf("%d ", cup.value)
-		}
-		fmt.Printf("\n")
-
-		fmt.Printf("pick up: %d", selectedFirst.value)
-		for cup := selectedFirst.next; cup.value != selectedLast.next.value; cup = cup.next {
-			fmt.Printf(", %d", cup.value)
-		}
-		fmt.Printf("\n")
-
-		fmt.Printf("destination: %d\n", destinationCup.value)
-	*/
-
 	//move the 3 selected cups to their new position
 	g.moveCups(destinationCup)
 
