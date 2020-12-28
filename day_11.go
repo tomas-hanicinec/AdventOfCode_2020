@@ -172,3 +172,12 @@ func (sp *SeatPlan) print() {
 		fmt.Println(string(sp.plan[i]))
 	}
 }
+
+func StringsToBytes(strings []string) [][]byte {
+	result := make([][]byte, len(strings))
+	for i, stringVal := range strings {
+		result[i] = []byte(stringVal)
+	}
+
+	return result
+}
